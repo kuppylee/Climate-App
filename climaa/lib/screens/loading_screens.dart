@@ -1,7 +1,10 @@
+import 'package:climaa/screens/location_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:climaa/services/location.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:climaa/services/networking.dart';
+
+
+const apiKey = '57dcca946b53000b8f3cda88aa7bae23';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({Key? key}) : super(key: key);
@@ -10,39 +13,32 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
+
+  late double longitude;
+  late double latitude;
+
   @override
   void initState() {
     super.initState();
-    getLocation();
+    getLocationData();
   }
 
-  void getLocation() async {
+  void getLocationData() async {
     Location location = Location();
    await location.getCurrentLocation();
-    print(location.latitude);
-    print(location.longitude);
-  }
-
-  void getData() async {
-    Uri uri = Uri.parse("https://samples.openweathermap.org/data/2.5/weather?lat=35&lon=139&appid=b1b15e88fa797225412429c1c50c122a1");
-    http.Response response = await http.get(uri);
-    if(response.statusCode == 200){
-      String data = response.body;
-      var decodedData = jsonDecode(data);
-      int condition = decodedData['weather'][0]['id'];
-      double temperature = decodedData['main']['temp'];
-      String city = decodedData['name'];
-      print(condition);
-      print(temperature);
-      print(city);
-    }else{
-      print(response.statusCode);
-    }
+   latitude = location.latitude;
+   longitude =location.longitude;
+    Uri url = Uri.parse("https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$apiKey");
+    NetworkHelper networkHelper = NetworkHelper(url);
+    var weatherData = await networkHelper.getData();
+    Navigator.push(context, MaterialPageRoute(builder: (context){
+      return LocationScreen();
+    }));
   }
 
   @override
   Widget build(BuildContext context) {
-    getData();
+    // getData(latitude, longitude);
     return Scaffold();
   }
 }
